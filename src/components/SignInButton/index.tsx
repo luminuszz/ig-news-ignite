@@ -10,10 +10,9 @@ interface SignInButtonProps {}
 
 export const SignInButton: RComponent<SignInButtonProps> = () => {
 	const [session] = useSession();
+	const [loading, setLoading] = useState(false);
 
-	console.log('session', session);
-
-	const handleClickSign = () => signIn('github');
+	const handleClickSign = async () => signIn('github');
 
 	const handleSignOut = () => signOut();
 
@@ -34,7 +33,7 @@ export const SignInButton: RComponent<SignInButtonProps> = () => {
 			onClick={handleClickSign}
 		>
 			<FaGithub color="#eba417" />
-			Sign in with GitHub
+			{loading ? 'Logando' : 'Sign in with GitHub'}
 		</button>
 	);
 };
