@@ -3,69 +3,57 @@ import { stripe } from 'services/stripe';
 import { query as q } from 'faunadb';
 import { getSession } from 'next-auth/client';
 import { fauna } from 'services/faunadb';
-import Stripe from 'stripe';
+import { middlewareHttpMethods } from '../_lib/utils';
 
 type User = {
 	ref: {
-		id: string
-	}
+		id: string;
+	};
 	data: {
-		email: string
-		stripe_costumer_id?: string
-
-	}
-
-}
+		email: string;
+		stripe_costumer_id?: string;
+	};
+};
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-	if (req.method !== 'POST') {
-		return res.status(405).setHeader('Allow', 'POST');
-	}
+	middlewareHttpMethods({
+		req,
+		res,
+		allowMethods: ['POST'],
+	});
 
 	const { user: loggedUser } = await getSession({
 		req,
 	});
 
-	let stripeCostumerId: string
+	let stripeCostumerId: string;
 
 	const user = await fauna.query<User>(
-		q.Get(
-			q.Match(
-				q.Index('users_by_email'),
-				q.Casefold(loggedUser.email)
-			)
-		)
+		q.Get(q.Match(q.Index('user_by_email'), q.Casefold(loggedUser.email)))
 	);
 
 	if (user.data.stripe_costumer_id) {
-
-		stripeCostumerId = user.data.stripe_costumer_id
-	}
-	else {
+		stripeCostumerId = user.data.stripe_costumer_id;
+	} else {
 		const stripeCostumer = await stripe.customers.create({
 			email: loggedUser.email,
 		});
 
-		stripeCostumerId = stripeCostumer.id
-
+		stripeCostumerId = stripeCostumer.id;
 
 		await fauna.query(
-			q.Update(
-				q.Ref(q.Collection('users'), user.ref.id),
-				{
-					data: {
-						stripe_costumer_id: stripeCostumerId
-					}
-				}
-			)
-		)
-
+			q.Update(q.Ref(q.Collection('users'), user.ref.id), {
+				data: {
+					stripe_customer_id: stripeCostumerId,
+				},
+			})
+		);
 	}
 
 	const stripeCheckout = await stripe.checkout.sessions.create({
 		customer: stripeCostumerId,
 		payment_method_types: ['card'],
-		billing_address_collection: 'required',
+		// billing_address_collection: 'required',
 		line_items: [
 			{
 				price: 'price_1IZNkWA8l6J998lLSa2lJ3QF',
