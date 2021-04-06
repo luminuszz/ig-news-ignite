@@ -1,10 +1,20 @@
-import Stripe from 'stripe';
-import { version } from '../../package.json';
+import StripeSDK from 'stripe';
+import { version, name } from '../../package.json';
 
-export const stripe = new Stripe(process.env.STRIPE_API_KEY, {
-	apiVersion: '2020-08-27',
-	appInfo: {
-		name: 'Ignews',
-		version,
-	},
-});
+class Stripe {
+	public static init() {
+		const apiSecret = process.env.STRIPE_API_KEY;
+
+		const stripeInstance = new StripeSDK(apiSecret, {
+			apiVersion: '2020-08-27',
+			appInfo: {
+				name,
+				version,
+			},
+		});
+
+		return stripeInstance;
+	}
+}
+
+export const stripe = Stripe.init();

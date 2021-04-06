@@ -5,6 +5,7 @@ import { useToast } from 'hooks/useToast';
 
 import styles from './styles.module.scss';
 import { api } from 'services/api';
+import { useRouter } from 'next/router';
 
 interface SubscribeButtonProps {
 	priceId: string;
@@ -20,10 +21,17 @@ export const SubscribeButton: RComponent<SubscribeButtonProps> = ({
 	const [session] = useSession();
 	const { success, error } = useToast();
 
+	const { push } = useRouter();
+
 	const handleSubscribe = async () => {
 		if (!session) {
 			signIn('github');
 
+			return;
+		}
+
+		if (session.user.activeSubscription) {
+			push('/posts');
 			return;
 		}
 

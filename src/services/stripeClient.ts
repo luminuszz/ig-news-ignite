@@ -1,9 +1,13 @@
 import { loadStripe } from '@stripe/stripe-js';
 
-export const getStripeJs = async () => {
-	const stripeJs = await loadStripe(
-		process.env.NEXT_PUBLIC_STRIPE_API_PUBLIC_KEY
-	);
+class StripeClient {
+	public static async getStripeJsInstance() {
+		const stripeApiKey = process.env.NEXT_PUBLIC_STRIPE_API_PUBLIC_KEY;
 
-	return stripeJs;
-};
+		const stripeJs = await loadStripe(stripeApiKey);
+
+		return stripeJs;
+	}
+}
+
+export const getStripeJs = StripeClient.getStripeJsInstance;

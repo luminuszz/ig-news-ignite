@@ -1,5 +1,15 @@
-import { Client } from 'faunadb';
+import { Client as FaunaClient } from 'faunadb';
 
-export const fauna = new Client({
-	secret: process.env.FAUNA_DB_API_KEY,
-});
+class Fauna {
+	public static init() {
+		const apiSecret = process.env.FAUNA_DB_API_KEY;
+
+		const faunaInstance = new FaunaClient({
+			secret: apiSecret,
+		});
+
+		return faunaInstance;
+	}
+}
+
+export const fauna = Fauna.init();
